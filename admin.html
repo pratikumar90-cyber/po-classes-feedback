@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P.O. Classes — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080808; --surface:#111; --card:#161616;
+    --border:#222; --border2:#2a2a2a;
+    --accent:#ff4d00; --accent2:#ff8c00;
+    --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --yellow:#f59e0b;
+    --text:#f0f0f0; --muted:#666; --muted2:#999;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'DM Sans',sans-serif; min-height:100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #loginScreen {
+    min-height:100vh; display:flex;
+    align-items:center; justify-content:center;
+    position:relative;
+  }
+  #loginScreen::before {
+    content:'';
+    position:fixed; top:-200px; left:50%; transform:translateX(-50%);
+    width:600px; height:400px;
+    background:radial-gradient(ellipse, rgba(255,77,0,0.08) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .login-card {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:20px; padding:48px 40px;
+    width:400px; text-align:center;
+    position:relative; z-index:1;
+  }
+  .login-logo {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:42px; letter-spacing:3px; margin-bottom:4px;
+  }
+  .login-logo span { color:var(--accent); }
+  .login-sub { font-size:12px; color:var(--muted2); margin-bottom:32px; letter-spacing:1px; text-transform:uppercase; }
+  .login-lock { font-size:40px; margin-bottom:20px; }
+  .login-title { font-size:18px; font-weight:700; margin-bottom:6px; }
+  .login-desc { font-size:12px; color:var(--muted2); margin-bottom:28px; }
+  .pw-input {
+    width:100%; background:var(--surface);
+    border:1.5px solid var(--border2); border-radius:10px;
+    color:var(--text); font-family:'DM Sans',sans-serif;
+    font-size:16px; padding:14px 16px; outline:none;
+    text-align:center; letter-spacing:4px;
+    margin-bottom:16px; transition:border-color 0.2s;
+  }
+  .pw-input:focus { border-color:var(--accent); }
+  .login-btn {
+    width:100%; padding:14px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#fff; font-family:'Bebas Neue',sans-serif;
+    font-size:20px; letter-spacing:3px;
+    border:none; border-radius:10px; cursor:pointer;
+    transition:opacity 0.2s;
+  }
+  .login-btn:hover { opacity:0.9; }
+  .login-error {
+    color:var(--red); font-size:12px; margin-top:12px; display:none;
+  }
+
+  /* ── ADMIN DASHBOARD ── */
+  #dashboard { display:none; }
+
+  header {
+    background:rgba(8,8,8,0.97); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    padding:14px 28px;
+    display:flex; justify-content:space-between; align-items:center;
+    position:sticky; top:0; z-index:100;
+  }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .logo-text {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:24px; letter-spacing:2px;
+  }
+  .logo-text span { color:var(--accent); }
+  .admin-badge {
+    background:#1a0500; border:1px solid #552200;
+    color:var(--accent); font-size:10px; font-weight:700;
+    padding:4px 12px; border-radius:20px; letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .refresh-btn {
+    background:var(--card); border:1px solid var(--border2);
+    color:var(--muted2); font-family:'DM Sans',sans-serif;
+    font-size:12px; font-weight:600; padding:8px 16px;
+    border-radius:8px; cursor:pointer; transition:all 0.2s;
+  }
+  .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .logout-btn {
+    background:transparent; border:1px solid #333;
+    color:var(--muted); font-family:'DM Sans',sans-serif;
+    font-size:12px; padding:8px 14px;
+    border-radius:8px; cursor:pointer;
+  }
+
+  main { max-width:1000px; margin:0 auto; padding:36px 24px 80px; }
+
+  /* Stats bar */
+  .stats-bar {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    margin-bottom:28px;
+  }
+  .stat-card {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:12px; padding:18px 20px;
+  }
+  .stat-label { font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .stat-val { font-size:28px; font-weight:900; }
+  .stat-val.orange { color:var(--accent2); }
+  .stat-val.green  { color:var(--green); }
+  .stat-val.blue   { color:var(--blue); }
+  .stat-val.red    { color:var(--red); }
+
+  /* Filters */
+  .filters {
+    display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;
+  }
+  .filter-btn {
+    background:var(--card); border:1.5px solid var(--border2);
+    color:var(--muted2); font-family:'DM Sans',sans-serif;
+    font-size:12px; font-weight:600; padding:8px 16px;
+    border-radius:20px; cursor:pointer; transition:all 0.2s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    border-color:var(--accent); color:var(--accent);
+    background:#1a0500;
+  }
+
+  /* Section heading */
+  .section-heading {
+    font-size:11px; letter-spacing:2px; color:var(--muted);
+    text-transform:uppercase; font-weight:700;
+    margin-bottom:16px; display:flex; align-items:center; gap:10px;
+  }
+  .section-heading::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* Feedback cards */
+  #feedbackList { display:flex; flex-direction:column; gap:14px; }
+
+  .fb-card {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:14px; overflow:hidden;
+    transition:border-color 0.2s;
+  }
+  .fb-card:hover { border-color:#333; }
+  .fb-card.has-complaint { border-left:3px solid var(--red); }
+  .fb-card.positive-only { border-left:3px solid var(--green); }
+
+  .fb-card-header {
+    padding:16px 20px; display:flex;
+    justify-content:space-between; align-items:flex-start;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+  }
+  .fb-name { font-size:16px; font-weight:700; }
+  .fb-meta { font-size:11px; color:var(--muted2); margin-top:3px; }
+  .fb-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .fb-time { font-size:10px; color:var(--muted); }
+  .fb-stars-row { display:flex; gap:3px; }
+  .star-mini { color:#ffcc00; font-size:13px; }
+  .star-mini.empty { color:#333; }
+
+  .fb-card-body { padding:16px 20px; display:none; }
+  .fb-card-body.open { display:block; }
+
+  .fb-row { margin-bottom:14px; }
+  .fb-row-label {
+    font-size:10px; letter-spacing:1.5px; color:var(--muted);
+    text-transform:uppercase; font-weight:700; margin-bottom:6px;
+  }
+  .fb-row-val { font-size:13px; color:var(--text); line-height:1.6; }
+
+  .rating-chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .rating-chip {
+    background:var(--surface); border:1px solid var(--border2);
+    border-radius:6px; padding:6px 12px;
+    font-size:11px; color:var(--muted2);
+  }
+  .rating-chip b { color:var(--text); }
+
+  .tag { display:inline-block; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:600; }
+  .tag-complaint { background:#1a0505; color:var(--red); border:1px solid #3a0a0a; }
+  .tag-positive  { background:#071a0f; color:var(--green); border:1px solid #0d3318; }
+  .tag-suggestion{ background:#05101a; color:var(--blue); border:1px solid #0a2233; }
+
+  /* Empty / Loading */
+  .empty-state {
+    text-align:center; padding:60px 20px; color:var(--muted);
+  }
+  .empty-icon { font-size:48px; margin-bottom:16px; }
+  .empty-text { font-size:16px; font-weight:600; margin-bottom:8px; }
+  .empty-sub  { font-size:13px; }
+
+  .loading-state { text-align:center; padding:40px; color:var(--muted2); }
+  .spinner {
+    width:32px; height:32px;
+    border:3px solid #222;
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    margin:0 auto 16px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">P.O.<span>Classes</span></div>
+    <div class="login-sub">Admin Portal · Delhi Branch</div>
+    <div class="login-lock">🔐</div>
+    <div class="login-title">Admin Access Only</div>
+    <div class="login-desc">Enter your password to view parent feedback</div>
+    <input type="password" class="pw-input" id="pwInput"
+      placeholder="••••••••••••"
+      onkeydown="if(event.key==='Enter')checkLogin()">
+    <button class="login-btn" onclick="checkLogin()">ACCESS DASHBOARD</button>
+    <div class="login-error" id="loginError">❌ Wrong password. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+  <header>
+    <div class="header-left">
+      <div class="logo-text">P.O.<span>Classes</span></div>
+      <div class="admin-badge">Admin Dashboard</div>
+    </div>
+    <div class="header-right">
+      <button class="refresh-btn" onclick="loadFeedback()">⟳ Refresh</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Total Responses</div>
+        <div class="stat-val orange" id="totalCount">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Complaints</div>
+        <div class="stat-val red" id="complaintCount">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Rating</div>
+        <div class="stat-val green" id="avgRating">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Latest Today</div>
+        <div class="stat-val blue" id="todayCount">—</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterFeedback('all', this)">All</button>
+      <button class="filter-btn" onclick="filterFeedback('complaint', this)">Has Complaint</button>
+      <button class="filter-btn" onclick="filterFeedback('positive', this)">Positive Only</button>
+      <button class="filter-btn" onclick="filterFeedback('suggestion', this)">Has Suggestion</button>
+    </div>
+
+    <div class="section-heading">Parent Feedback Responses</div>
+    <div id="feedbackList">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        Loading feedback...
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ══════════════════════════════════════════
+  // PASSWORD — hashed so it's not visible in code
+  // SHA-256 of "Prateek@2026"
+  // ══════════════════════════════════════════
+  const PASS_HASH = "9badfe073979563aebd7bff35f4e9f5ea7fd7e36d56ce5503ec2854e4e4afcbf";
+
+  // ══════════════════════════════════════════
+  // REPLACE WITH YOUR GOOGLE APPS SCRIPT URL
+  // ══════════════════════════════════════════
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVOFtiwG_3RE9Ys4IDufCy7RpL9E8FbYBKhP-tIwj3gKV77rZzUWkXG3pBwjVD6EUp/exec";
+
+  let allFeedback = [];
+
+  async function sha256(msg) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function checkLogin() {
+    const pw = document.getElementById('pwInput').value;
+    const hash = await sha256(pw);
+    if (hash === PASS_HASH) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      sessionStorage.setItem('po_admin', '1');
+      loadFeedback();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('po_admin');
+    location.reload();
+  }
+
+  async function loadFeedback() {
+    document.getElementById('feedbackList').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div>Loading feedback...</div>';
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=get');
+      const data = await res.json();
+      allFeedback = data.rows || [];
+      renderFeedback(allFeedback);
+      updateStats(allFeedback);
+    } catch(e) {
+      document.getElementById('feedbackList').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load data</div><div class="empty-sub">Check your Google Script URL in admin.html</div></div>';
+    }
+  }
+
+  function updateStats(data) {
+    document.getElementById('totalCount').textContent = data.length;
+    const complaints = data.filter(r => r.complaintFb && r.complaintFb.trim()).length;
+    document.getElementById('complaintCount').textContent = complaints;
+    if (data.length) {
+      const avg = data.reduce((s,r) => s + (parseFloat(r.ratingOverall)||0), 0) / data.length;
+      document.getElementById('avgRating').textContent = avg.toFixed(1) + ' ★';
+    } else {
+      document.getElementById('avgRating').textContent = '—';
+    }
+    const today = new Date().toLocaleDateString('en-IN');
+    const todayItems = data.filter(r => r.timestamp && r.timestamp.includes(today));
+    document.getElementById('todayCount').textContent = todayItems.length;
+  }
+
+  function filterFeedback(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    let filtered = allFeedback;
+    if (type === 'complaint') filtered = allFeedback.filter(r => r.complaintFb && r.complaintFb.trim());
+    if (type === 'positive')  filtered = allFeedback.filter(r => r.positiveFb && r.positiveFb.trim() && !r.complaintFb?.trim());
+    if (type === 'suggestion')filtered = allFeedback.filter(r => r.suggestionFb && r.suggestionFb.trim());
+    renderFeedback(filtered);
+  }
+
+  function renderFeedback(data) {
+    const list = document.getElementById('feedbackList');
+    if (!data.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No feedback yet</div><div class="empty-sub">Share the form link with parents to get started</div></div>';
+      return;
+    }
+    list.innerHTML = [...data].reverse().map((r, i) => {
+      const hasComplaint = r.complaintFb && r.complaintFb.trim();
+      const cardClass = hasComplaint ? 'has-complaint' : (r.positiveFb ? 'positive-only' : '');
+      const overallRating = parseInt(r.ratingOverall) || 0;
+      const starsHtml = [1,2,3,4,5].map(n =>
+        `<span class="star-mini ${n <= overallRating ? '' : 'empty'}">★</span>`).join('');
+
+      return `<div class="fb-card ${cardClass}">
+        <div class="fb-card-header" onclick="toggleCard(this)">
+          <div>
+            <div class="fb-name">${r.parentName || '—'} <span style="color:var(--muted2);font-size:13px;font-weight:400">re: ${r.studentName || '—'}</span></div>
+            <div class="fb-meta">${r.studentClass || ''} ${r.contactNum ? '· ' + r.contactNum : ''}</div>
+          </div>
+          <div class="fb-right">
+            <div class="fb-time">${r.timestamp || ''}</div>
+            <div class="fb-stars-row">${starsHtml}</div>
+            ${hasComplaint ? '<span class="tag tag-complaint">⚠ Complaint</span>' : '<span class="tag tag-positive">✓ Positive</span>'}
+          </div>
+        </div>
+        <div class="fb-card-body" id="card-${i}">
+          <div class="fb-row">
+            <div class="fb-row-label">Ratings</div>
+            <div class="rating-chips">
+              <div class="rating-chip">Teaching <b>${r.ratingTeaching || 0}/5</b></div>
+              <div class="rating-chip">Progress <b>${r.ratingProgress || 0}/5</b></div>
+              <div class="rating-chip">Communication <b>${r.ratingComm || 0}/5</b></div>
+              <div class="rating-chip">Overall <b>${r.ratingOverall || 0}/5</b></div>
+            </div>
+          </div>
+          ${r.positiveFb ? `<div class="fb-row"><div class="fb-row-label">✓ Positive Feedback</div><div class="fb-row-val">${r.positiveFb}</div></div>` : ''}
+          ${r.complaintFb ? `<div class="fb-row"><div class="fb-row-label" style="color:var(--red)">⚠ Complaint</div><div class="fb-row-val" style="color:#ffaaaa">${r.complaintFb}</div></div>` : ''}
+          ${r.suggestionFb ? `<div class="fb-row"><div class="fb-row-label" style="color:var(--blue)">💡 Suggestion</div><div class="fb-row-val">${r.suggestionFb}</div></div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleCard(header) {
+    const body = header.nextElementSibling;
+    body.classList.toggle('open');
+  }
+
+  // Auto-login if session exists
+  if (sessionStorage.getItem('po_admin') === '1') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadFeedback();
+  }
+</script>
+</body>
+</html>
